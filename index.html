@@ -95,8 +95,28 @@ for(let i=0;i<32;i++){
   bkx.fillStyle="#c8b898"; bkx.fillRect(i*4,2,3,.8);
 }
 const bookTex=new THREE.CanvasTexture(bkCv);bookTex.wrapS=THREE.RepeatWrapping;
+function makeSign(text,w=256,h=64){
+  const cv=document.createElement("canvas");cv.width=w;cv.height=h;
+  const x=cv.getContext("2d");
+  x.fillStyle="#1a1410";x.fillRect(0,0,w,h);
+  x.fillStyle="#d8c8a8";x.font="bold 28px sans-serif";x.textAlign="center";x.textBaseline="middle";
+  x.fillText(text,w/2,h/2);
+  return new THREE.CanvasTexture(cv);
+}
+const signLib=new THREE.Mesh(new THREE.PlaneGeometry(4.2,1.0),new THREE.MeshBasicMaterial({map:makeSign("図書館",256,64)}));
+signLib.position.set(0,3.6,29.5);scene.add(signLib);
+const signIn=new THREE.Mesh(new THREE.PlaneGeometry(2.4,.55),new THREE.MeshBasicMaterial({map:makeSign("閉館 22:00",256,64)}));
+signIn.position.set(0,2.9,29.45);scene.add(signIn);
+[-10,10].forEach((x,i)=>{
+  const lab=["文芸","歴史"][i];
+  const m=new THREE.Mesh(new THREE.PlaneGeometry(1.6,.4),new THREE.MeshBasicMaterial({map:makeSign(lab,256,64)}));
+  m.position.set(x,3.15,16);scene.add(m);
+});
+
 
 const fl=new THREE.Mesh(new THREE.PlaneGeometry(80,90),floorMat);
+const carpet=new THREE.Mesh(new THREE.PlaneGeometry(3.2,18),new THREE.MeshStandardMaterial({color:0x5a1818,roughness:.95}));
+carpet.rotation.x=-Math.PI/2;carpet.position.set(0,.02,20);scene.add(carpet);
 fl.rotation.x=-Math.PI/2;scene.add(fl);
 
 function box(sx,sy,sz,mat,x,y,z){
@@ -180,6 +200,49 @@ function desk(x,z){
 }
 const hideSpots=[[0,13],[-14,10],[14,10],[0,-6],[-12,-18],[12,-20]];
 hideSpots.forEach(([x,z])=>desk(x,z));
+const lamp=new THREE.Mesh(new THREE.CylinderGeometry(.06,.08,.45,8),blackMat);
+lamp.position.set(.55,1.05,13);scene.add(lamp);
+const lampC=new THREE.Mesh(new THREE.SphereGeometry(.12,8,8),new THREE.MeshBasicMaterial({color:0xffe2a8}));
+lampC.position.set(.55,1.32,13);scene.add(lampC);
+const lampL=new THREE.PointLight(0xffd8a0,.8,4);lampL.position.set(.55,1.35,13);scene.add(lampL);
+const cart=new THREE.Group();cart.position.set(-3.2,0,22);
+box(1.1,.08,.55,woodMat,-3.2,.55,22);
+box(1.1,.08,.55,woodMat,-3.2,.95,22);
+for(const dx of [-.45,.45]) box(.06,.95,.06,blackMat,-3.2+dx,.48,22.2);
+scene.add(cart);
+
+/* 図書館備品 */
+function signAt(t,x,y,z,sx=1.8,sy=.4){
+  const m=new THREE.Mesh(new THREE.PlaneGeometry(sx,sy),new THREE.MeshBasicMaterial({map:makeSign(t,256,64)}));
+  m.position.set(x,y,z);scene.add(m);return m;
+}
+signAt("飲食禁止",-6,2.8,29.4,1.6,.35);
+signAt("禁帯出",8,2.6,16,1.4,.35);
+signAt("新着",-8,2.6,16,1.4,.35);
+signAt("000 総記",-16,3.1,4,1.8,.35);
+signAt("900 文学",16,3.1,4,1.8,.35);
+const post=box(.7,1.1,.55,woodMat,-4.2,.55,27.2);
+signAt("返却",-4.2,1.35,27.55,1.1,.28);
+function pcStand(x,z){
+  box(.7,.72,.5,woodMat,x,.36,z);
+  box(.42,.28,.04,blackMat,x,1.05,z-.12);
+  const sc=new THREE.Mesh(new THREE.PlaneGeometry(.38,.22),new THREE.MeshBasicMaterial({color:0x113322}));
+  sc.position.set(x,1.05,z-.1);scene.add(sc);
+}
+pcStand(2.2,24.2); pcStand(3.6,24.2);
+const copy=box(1.1,1.05,.7,new THREE.MeshStandardMaterial({color:0x888890}),-8,.52,24);
+box(.7,.04,.5,blackMat,-8,1.1,24);
+const fire=box(.18,.7,.12,new THREE.MeshStandardMaterial({color:0x8a1010}),-26.8,.45,8);
+const exitG=new THREE.Mesh(new THREE.PlaneGeometry(.9,.28),new THREE.MeshBasicMaterial({color:0x33ff88}));
+exitG.position.set(0,3.2,-33.6);scene.add(exitG);
+signAt("非常口",0,3.55,-33.55,1.4,.3);
+const mag=box(1.6,.9,.35,woodMat,10,.45,22);
+for(let i=0;i<3;i++) box(1.4,.03,.3,new THREE.MeshStandardMaterial({color:0x6a2028}),10,.35+i*.22,22.1);
+const bin=new THREE.Mesh(new THREE.CylinderGeometry(.18,.2,.4,8),blackMat);bin.position.set(6.2,.2,26);scene.add(bin);
+const plant=new THREE.Mesh(new THREE.CylinderGeometry(.12,.16,.35,6),woodMat);plant.position.set(-6.5,.18,26);scene.add(plant);
+const leaf=new THREE.Mesh(new THREE.SphereGeometry(.28,6,6),new THREE.MeshStandardMaterial({color:0x1a3a22}));leaf.position.set(-6.5,.55,26);scene.add(leaf);
+
+
 
 const counter=new THREE.Group();counter.position.set(5,0,24);
 const cBody=new THREE.Mesh(new THREE.BoxGeometry(4.6,1.05,1.0),woodMat);
