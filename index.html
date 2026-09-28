@@ -110,15 +110,20 @@ const wallMat=new THREE.MeshStandardMaterial({color:0x2e2c2a,roughness:.88});
 const woodMat=new THREE.MeshStandardMaterial({color:0x5c3a26,roughness:.72,metalness:.02});
 const blackMat=new THREE.MeshStandardMaterial({color:0x080808});
 const bookCols=[0x3a2218,0x5a2020,0x203040,0x3a3a18,0x222];
-const bkCv=document.createElement("canvas");bkCv.width=128;bkCv.height=64;
+const bkCv=document.createElement("canvas");bkCv.width=256;bkCv.height=128;
 const bkx=bkCv.getContext("2d");
-const bcs=["#4a2818","#6a2020","#203040","#3a3a20","#1a1a1a","#5a4030","#2a3048"];
-for(let i=0;i<32;i++){
-  bkx.fillStyle=bcs[i%bcs.length];
-  bkx.fillRect(i*4,0,3+((i*7)%2),64);
-  bkx.fillStyle="#c8b898"; bkx.fillRect(i*4,2,3,.8);
+const bcs=["#3b2418","#6b1e1c","#1c2a3a","#3a3820","#161616","#5a4030","#243044","#4a3020","#2a1812"];
+let x=0;
+while(x<256){
+  const w=3+((x*13)%7);
+  bkx.fillStyle=bcs[x%bcs.length];
+  bkx.fillRect(x,0,w,128);
+  bkx.fillStyle="rgba(0,0,0,.25)"; bkx.fillRect(x+w-1,0,1,128);
+  if(x%5!==0){ bkx.fillStyle="#c4b082"; bkx.fillRect(x+1,6,w-2,2); }
+  if(x%3===0){ bkx.fillStyle="#8a7858"; bkx.fillRect(x+1,110,w-2,3); }
+  x+=w;
 }
-const bookTex=new THREE.CanvasTexture(bkCv);bookTex.wrapS=THREE.RepeatWrapping;
+const bookTex=new THREE.CanvasTexture(bkCv);bookTex.wrapS=THREE.RepeatWrapping;bookTex.anisotropy=2;
 function makeSign(text,w=256,h=64){
   const cv=document.createElement("canvas");cv.width=w;cv.height=h;
   const x=cv.getContext("2d");
@@ -171,13 +176,19 @@ for(let z=-28;z<=26;z+=7){
 const solids=[];
 function tallShelf(x,z,len=3.2,rot=0){
   const g=new THREE.Group();g.position.set(x,0,z);g.rotation.y=rot;
-  const body=new THREE.Mesh(new THREE.BoxGeometry(len,3.05,.38),woodMat);body.position.y=1.52;g.add(body);
-  const bt=bookTex.clone(); bt.repeat.set(Math.max(2,len*1.4),1);
-  const s=new THREE.Mesh(new THREE.BoxGeometry(len-.08,2.72,.14),new THREE.MeshStandardMaterial({map:bt,roughness:.9}));
-  s.position.set(0,1.52,.22);g.add(s);
+  const body=new THREE.Mesh(new THREE.BoxGeometry(len,3.05,.32),woodMat);body.position.y=1.52;g.add(body);
+  const cap=new THREE.Mesh(new THREE.BoxGeometry(len+.08,.08,.42),woodMat);cap.position.y=3.08;g.add(cap);
+  const base=new THREE.Mesh(new THREE.BoxGeometry(len+.06,.1,.42),woodMat);base.position.y=.06;g.add(base);
+  for(const s of [-1,1]){
+    const post=new THREE.Mesh(new THREE.BoxGeometry(.07,3.08,.4),woodMat);
+    post.position.set(s*(len/2-.02),1.54,0);g.add(post);
+  }
+  const bt=bookTex.clone(); bt.repeat.set(Math.max(3,len*2.1),1);
+  const s=new THREE.Mesh(new THREE.BoxGeometry(len-.16,2.62,.16),new THREE.MeshStandardMaterial({map:bt,roughness:.92}));
+  s.position.set(0,1.52,.18);g.add(s);
   for(let i=0;i<4;i++){
-    const sl=new THREE.Mesh(new THREE.BoxGeometry(len,.035,.4),woodMat);
-    sl.position.set(0,.42+i*.68,.02);g.add(sl);
+    const sl=new THREE.Mesh(new THREE.BoxGeometry(len-.02,.04,.38),woodMat);
+    sl.position.set(0,.38+i*.7,.02);g.add(sl);
   }
   scene.add(g);
   const hx=rot? .22:len/2+.04, hz=rot? len/2+.04:.22;
