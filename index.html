@@ -78,11 +78,23 @@ flashlight.penumbra=.55;
 scene.add(flashlight);scene.add(flashlight.target);
 let lightOn=true;
 
-const floorMat=new THREE.MeshStandardMaterial({color:0x3a1414,roughness:1});
+const flCv=document.createElement("canvas");flCv.width=64;flCv.height=64;
+const flx=flCv.getContext("2d");flx.fillStyle="#3a2018";flx.fillRect(0,0,64,64);
+flx.fillStyle="#2a1612";for(let i=0;i<64;i+=8){flx.fillRect(i,0,1,64);flx.fillRect(0,i,64,1);}
+const floorMat=new THREE.MeshStandardMaterial({map:new THREE.CanvasTexture(flCv),color:0x886655,roughness:.82,metalness:.04});
 const wallMat=new THREE.MeshStandardMaterial({color:0x2a2a2c,roughness:1});
-const woodMat=new THREE.MeshStandardMaterial({color:0x5a3a22,roughness:1});
+const woodMat=new THREE.MeshStandardMaterial({color:0x6a4430,roughness:.78});
 const blackMat=new THREE.MeshStandardMaterial({color:0x080808});
 const bookCols=[0x3a2218,0x5a2020,0x203040,0x3a3a18,0x222];
+const bkCv=document.createElement("canvas");bkCv.width=128;bkCv.height=64;
+const bkx=bkCv.getContext("2d");
+const bcs=["#4a2818","#6a2020","#203040","#3a3a20","#1a1a1a","#5a4030","#2a3048"];
+for(let i=0;i<32;i++){
+  bkx.fillStyle=bcs[i%bcs.length];
+  bkx.fillRect(i*4,0,3+((i*7)%2),64);
+  bkx.fillStyle="#c8b898"; bkx.fillRect(i*4,2,3,.8);
+}
+const bookTex=new THREE.CanvasTexture(bkCv);bookTex.wrapS=THREE.RepeatWrapping;
 
 const fl=new THREE.Mesh(new THREE.PlaneGeometry(80,90),floorMat);
 fl.rotation.x=-Math.PI/2;scene.add(fl);
@@ -103,13 +115,26 @@ for(const x of [-27.5,27.5]){
 }
 
 box(56,.2,64,new THREE.MeshStandardMaterial({color:0x1a1814}),0,5.5,-2);
+const fluMat=new THREE.MeshBasicMaterial({color:0xfff3d0});
+for(let z=-28;z<=26;z+=7){
+  const bar=new THREE.Mesh(new THREE.BoxGeometry(18,.04,.28),fluMat);
+  bar.position.set((z%14===0)?-8:8,5.28,z);scene.add(bar);
+  const pl=new THREE.PointLight(0xfff1d4,.28,11);
+  pl.position.set((z%14===0)?-8:8,5.1,z);scene.add(pl);
+}
+
 
 const solids=[];
 function tallShelf(x,z,len=3.2,rot=0){
   const g=new THREE.Group();g.position.set(x,0,z);g.rotation.y=rot;
-  const body=new THREE.Mesh(new THREE.BoxGeometry(len,3.0,.36),woodMat);body.position.y=1.5;g.add(body);
-  const s=new THREE.Mesh(new THREE.BoxGeometry(len-.1,2.6,.12),new THREE.MeshStandardMaterial({color:bookCols[(Math.abs(x)+Math.abs(z))%5|0]}));
-  s.position.set(0,1.5,.2);g.add(s);
+  const body=new THREE.Mesh(new THREE.BoxGeometry(len,3.05,.38),woodMat);body.position.y=1.52;g.add(body);
+  const bt=bookTex.clone(); bt.repeat.set(Math.max(2,len*1.4),1);
+  const s=new THREE.Mesh(new THREE.BoxGeometry(len-.08,2.72,.14),new THREE.MeshStandardMaterial({map:bt,roughness:.9}));
+  s.position.set(0,1.52,.22);g.add(s);
+  for(let i=0;i<4;i++){
+    const sl=new THREE.Mesh(new THREE.BoxGeometry(len,.035,.4),woodMat);
+    sl.position.set(0,.42+i*.68,.02);g.add(sl);
+  }
   scene.add(g);
   const hx=rot? .22:len/2+.04, hz=rot? len/2+.04:.22;
   solids.push({x,z,hx,hz});
