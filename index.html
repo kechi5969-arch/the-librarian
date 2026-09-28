@@ -86,9 +86,12 @@ scene.background=new THREE.Color(0xff7a3a);
 scene.fog=new THREE.Fog(0xff7a3a,18,48);
 const camera=new THREE.PerspectiveCamera(70,innerWidth/innerHeight,.05,80);
 camera.position.set(0,22,8);
-const renderer=new THREE.WebGLRenderer({antialias:false});
+const renderer=new THREE.WebGLRenderer({antialias:false,powerPreference:"low-power"});
 renderer.setSize(innerWidth,innerHeight);
-renderer.setPixelRatio(Math.min(devicePixelRatio,1.15));
+renderer.setPixelRatio(Math.min(devicePixelRatio,1.25));
+renderer.outputColorSpace=THREE.SRGBColorSpace;
+renderer.toneMapping=THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure=1.05;
 document.body.appendChild(renderer.domElement);
 
 const ambient=new THREE.AmbientLight(0xffc090,1.1);scene.add(ambient);
@@ -103,8 +106,8 @@ const flCv=document.createElement("canvas");flCv.width=64;flCv.height=64;
 const flx=flCv.getContext("2d");flx.fillStyle="#3a2018";flx.fillRect(0,0,64,64);
 flx.fillStyle="#2a1612";for(let i=0;i<64;i+=8){flx.fillRect(i,0,1,64);flx.fillRect(0,i,64,1);}
 const floorMat=new THREE.MeshStandardMaterial({map:new THREE.CanvasTexture(flCv),color:0x886655,roughness:.82,metalness:.04});
-const wallMat=new THREE.MeshStandardMaterial({color:0x2a2a2c,roughness:1});
-const woodMat=new THREE.MeshStandardMaterial({color:0x6a4430,roughness:.78});
+const wallMat=new THREE.MeshStandardMaterial({color:0x2e2c2a,roughness:.88});
+const woodMat=new THREE.MeshStandardMaterial({color:0x5c3a26,roughness:.72,metalness:.02});
 const blackMat=new THREE.MeshStandardMaterial({color:0x080808});
 const bookCols=[0x3a2218,0x5a2020,0x203040,0x3a3a18,0x222];
 const bkCv=document.createElement("canvas");bkCv.width=128;bkCv.height=64;
@@ -156,11 +159,11 @@ for(const x of [-27.5,27.5]){
 }
 
 box(56,.2,64,new THREE.MeshStandardMaterial({color:0x1a1814}),0,5.5,-2);
-const fluMat=new THREE.MeshBasicMaterial({color:0xfff3d0});
+const fluMat=new THREE.MeshBasicMaterial({color:0xe8f0ee});
 for(let z=-28;z<=26;z+=7){
   const bar=new THREE.Mesh(new THREE.BoxGeometry(18,.04,.28),fluMat);
   bar.position.set((z%14===0)?-8:8,5.28,z);scene.add(bar);
-  const pl=new THREE.PointLight(0xfff1d4,.28,11);
+  const pl=new THREE.PointLight(0xdde8e4,.38,12);
   pl.position.set((z%14===0)?-8:8,5.1,z);scene.add(pl);
 }
 
@@ -488,8 +491,8 @@ document.querySelector("#startBtn").onclick=async()=>{
   const had=await playVideo("opening.mp4");
   if(had){
     pitch=0;yaw=0;camera.position.set(0,1.62,14.1);canMove=true;cut=false;
-    sunBall.visible=false;moon.visible=true;ambient.intensity=.32;ceiling.intensity=.55;sun.intensity=.08;
-    scene.fog.near=4;scene.fog.far=18;scene.background.set(0x1a1816);scene.fog.color.set(0x1a1816);
+    sunBall.visible=false;moon.visible=true;ambient.intensity=.22;ceiling.intensity=.4;sun.intensity=.04;
+    scene.fog.near=5;scene.fog.far=22;scene.background.set(0x121014);scene.fog.color.set(0x121014);
     phase="door";setObj("入口へ向かう");
     say("赤い矢印の入口へ。",2400);
     return;
@@ -511,8 +514,8 @@ document.querySelector("#startBtn").onclick=async()=>{
   await cutTo(()=>{
     camera.position.set(0,26,6);pitch=-1.15;
     scene.background.set(0x0b1020);scene.fog.color.set(0x0b1020);
-    sunBall.visible=false;moon.visible=true;ambient.intensity=.32;ceiling.intensity=.55;sun.intensity=.08;
-    scene.fog.near=4;scene.fog.far=18;scene.background.set(0x1a1816);scene.fog.color.set(0x1a1816);
+    sunBall.visible=false;moon.visible=true;ambient.intensity=.22;ceiling.intensity=.4;sun.intensity=.04;
+    scene.fog.near=5;scene.fog.far=22;scene.background.set(0x121014);scene.fog.color.set(0x121014);
     showClock("22:00");
   });
   say("建物の上に、月が出ている。",2400);
@@ -524,7 +527,7 @@ document.querySelector("#startBtn").onclick=async()=>{
   say("もうこんな時間か。帰ろう。",2800);
   await new Promise(r=>setTimeout(r,2600));
   pitch=0;yaw=0;camera.position.set(0,1.62,14.1);canMove=true;cut=false;
-  scene.fog.near=4;scene.fog.far=18;ambient.intensity=.32; startHum(); if(humGain) humGain.gain.setTargetAtTime(.07, audioCtx?audioCtx.currentTime:0,.3);
+  scene.fog.near=5;scene.fog.far=22;ambient.intensity=.22; startHum(); if(humGain) humGain.gain.setTargetAtTime(.07, audioCtx?audioCtx.currentTime:0,.3);
   phase="door";setObj("入口へ向かう");
   say("赤い矢印の入口へ。",2400);
 };
