@@ -28,6 +28,7 @@ canvas{display:block;width:100%;height:100%}
 #stamina>i{display:block;height:100%;width:100%;background:#c8c0a0}
 #rotate{position:fixed;inset:0;z-index:9;background:#050505;color:#bbb;display:none;align-items:center;justify-content:center;letter-spacing:.2em}
 #fade{position:fixed;inset:0;z-index:20;background:#000;opacity:0;pointer-events:none}
+#op{position:fixed;inset:0;width:100%;height:100%;object-fit:cover;z-index:40;background:#000;display:none}
 </style>
 </head>
 <body>
@@ -48,6 +49,7 @@ canvas{display:block;width:100%;height:100%}
 <button id="flash">LIGHT</button>
 <div id="stamina"><i id="stamFill"></i></div>
 <div id="rotate">画面を横にしてください</div>
+<video id="op" playsinline webkit-playsinline></video>
 <div id="fade"></div>
 <script type="module">
 import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js";
@@ -351,10 +353,37 @@ function cutTo(fn,hold=900){
   });
 }
 
+async function playOpening(){
+  const v=document.getElementById("op");
+  v.src="opening.mp4";
+  v.style.display="block";
+  const ok=await new Promise(res=>{
+    const t=setTimeout(()=>res(false),4000);
+    v.oncanplay=()=>res(true);
+    v.onerror=()=>res(false);
+  });
+  if(!ok){ v.style.display="none"; return false; }
+  try{ await v.play(); }catch(e){ v.muted=true; try{await v.play();}catch(e2){ v.style.display="none"; return false; } }
+  await new Promise(res=>{
+    v.onended=res;
+    v.onclick=()=>{try{v.pause()}catch(e){};res()};
+  });
+  v.style.display="none";
+  return true;
+}
 document.querySelector("#startBtn").onclick=async()=>{
   document.querySelector("#start").style.display="none"; startAudio(); startHeart(); if(audioCtx&&audioCtx.state==="suspended")audioCtx.resume();
   try{screen.orientation&&screen.orientation.lock("landscape")}catch(e){}
   cut=true;canMove=false;
+  const had=await playOpening();
+  if(had){
+    pitch=0;yaw=0;camera.position.set(0,1.62,14.1);canMove=true;cut=false;
+    sunBall.visible=false;moon.visible=true;ambient.intensity=.32;ceiling.intensity=.55;sun.intensity=.08;
+    scene.fog.near=4;scene.fog.far=18;scene.background.set(0x1a1816);scene.fog.color.set(0x1a1816);
+    phase="door";setObj("入口へ向かう");
+    say("赤い矢印の入口へ。",2400);
+    return;
+  }
   // 1 夕日＋上から
   camera.position.set(0,26,6);yaw=0;pitch=-1.15;
   scene.background.set(0xff6a2a);scene.fog.color.set(0xff6a2a);
