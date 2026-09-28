@@ -397,7 +397,7 @@ async function playVideo(src){
   return true;
 }
 document.querySelector("#startBtn").onclick=async()=>{
-  document.querySelector("#start").style.display="none"; startAudio(); startHeart(); if(audioCtx&&audioCtx.state==="suspended")audioCtx.resume();
+  document.querySelector("#start").style.display="none"; startAudio(); startHeart(); startHum(); if(audioCtx&&audioCtx.state==="suspended")audioCtx.resume();
   try{screen.orientation&&screen.orientation.lock("landscape")}catch(e){}
   cut=true;canMove=false;
   const had=await playVideo("opening.mp4");
@@ -439,7 +439,7 @@ document.querySelector("#startBtn").onclick=async()=>{
   say("もうこんな時間か。帰ろう。",2800);
   await new Promise(r=>setTimeout(r,2600));
   pitch=0;yaw=0;camera.position.set(0,1.62,14.1);canMove=true;cut=false;
-  scene.fog.near=4;scene.fog.far=18;ambient.intensity=.32;
+  scene.fog.near=4;scene.fog.far=18;ambient.intensity=.32; startHum(); if(humGain) humGain.gain.setTargetAtTime(.07, audioCtx?audioCtx.currentTime:0,.3);
   phase="door";setObj("入口へ向かう");
   say("赤い矢印の入口へ。",2400);
 };
@@ -477,6 +477,17 @@ function mfoot(vol){
   o.connect(g); g.connect(audioCtx.destination); o.start(t); o.stop(t+.18);
 }
 let heartGain=null, heartOn=false;
+let humGain=null;
+function startHum(){
+  if(!audioCtx||humGain) return;
+  const o=audioCtx.createOscillator(); o.type="sine"; o.frequency.value=120;
+  const o2=audioCtx.createOscillator(); o2.type="sine"; o2.frequency.value=121.7;
+  const o3=audioCtx.createOscillator(); o3.type="triangle"; o3.frequency.value=60;
+  const f=audioCtx.createBiquadFilter(); f.type="lowpass"; f.frequency.value=280;
+  humGain=audioCtx.createGain(); humGain.gain.value=0.07;
+  o.connect(f); o2.connect(f); o3.connect(f); f.connect(humGain); humGain.connect(audioCtx.destination);
+  o.start(); o2.start(); o3.start();
+}
 function startHeart(){
   if(!audioCtx||heartGain) return;
   heartGain=audioCtx.createGain(); heartGain.gain.value=0; heartGain.connect(audioCtx.destination);
