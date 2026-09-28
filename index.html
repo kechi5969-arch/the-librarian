@@ -208,11 +208,12 @@ const skin=new THREE.MeshStandardMaterial({color:0x050505,roughness:1});
 const fBody=new THREE.Mesh(new THREE.CylinderGeometry(.045,.09,1.55,8),skin);
 fBody.position.y=1.55;figure.add(fBody);
 const pelvis=new THREE.Mesh(new THREE.SphereGeometry(.07,6,6),skin);pelvis.position.y=.78;figure.add(pelvis);
+const figLegs=[],figArms=[];
 for(const s of [-1,1]){
   const leg=new THREE.Mesh(new THREE.CylinderGeometry(.025,.035,1.15,6),skin);
-  leg.position.set(s*.07,.58,0);figure.add(leg);
+  leg.position.set(s*.07,.58,0);leg.userData.side=s;figure.add(leg);figLegs.push(leg);
   const arm=new THREE.Mesh(new THREE.CylinderGeometry(.018,.028,1.35,6),skin);
-  arm.position.set(s*.16,1.35,0);figure.add(arm);
+  arm.position.set(s*.16,1.35,0);arm.userData.side=s;figure.add(arm);figArms.push(arm);
 }
 const faceCv=document.createElement("canvas");faceCv.width=64;faceCv.height=80;
 const fx=faceCv.getContext("2d");
@@ -248,7 +249,7 @@ let seenAway=false,peeked=false;
 let phase="intro"; // intro door explore scare chase keys
 let keysGot=0,lightInt=6,hitCD=0,hiding=false,stamina=1,dashing=false;
 const ev={pc:false,bell:false,face:false,books:false,all:false,turned:false,hidOk:false};
-let hideTimer=0,stepT=0,mstepT=0,faceHold=0;
+let hideTimer=0,stepT=0,mstepT=0,faceHold=0,walkT=0,stuck=0;
 
 const keysHeld={};
 addEventListener("keydown",e=>keysHeld[e.code]=true);
@@ -643,10 +644,30 @@ function animate(t){
     const fd=Math.hypot(fx,fz)||1;
     const boost = phase==="slowChase" ? 0.38 : [1.35,1.7,2.2,2.9,3.9,6.4][Math.min(5,keysGot)];
     const spd=boost*dt;
-    const ngx=figure.position.x+(hiding?0:(fx/fd)*spd*8),ngz=figure.position.z+(hiding?0:(fz/fd)*spd*8);
-    if(!blocked(ngx,figure.position.z))figure.position.x=ngx;
-    if(!blocked(figure.position.x,ngz))figure.position.z=ngz;
-    figure.lookAt(camera.position.x,1.6,camera.position.z);
+    let mx=(hiding?0:(fx/fd)*spd*8), mz=(hiding?0:(fz/fd)*spd*8);
+    let ngx=figure.position.x+mx, ngz=figure.position.z+mz;
+    const bx=!blocked(ngx,figure.position.z), bz=!blocked(figure.position.x,ngz);
+    if(bx) figure.position.x=ngx;
+    if(bz) figure.position.z=ngz;
+    if(!bx||!bz){
+      stuck+=dt;
+      const sx=-mz*1.6, sz=mx*1.6;
+      if(!blocked(figure.position.x+sx,figure.position.z)) figure.position.x+=sx;
+      if(!blocked(figure.position.x,figure.position.z+sz)) figure.position.z+=sz;
+    } else stuck=0;
+    figure.lookAt(camera.position.x,1.4,camera.position.z);
+    const moving=!hiding && (bx||bz);
+    if(moving){
+      walkT+=dt*(2.2+boost*0.8);
+      const w=Math.sin(walkT);
+      figLegs[0].rotation.x=w*.55; figLegs[1].rotation.x=-w*.55;
+      figArms[0].rotation.x=-w*.7; figArms[1].rotation.x=w*.7;
+      figure.position.y=Math.abs(w)*.04;
+    }else{
+      figLegs.forEach(l=>l.rotation.x*=.85);
+      figArms.forEach(a=>a.rotation.x*=.85);
+      figure.position.y*=.85;
+    }
     groanOn=true; heartOn=true; startHeart();
     if(heartGain){
       const hv=hiding?0.12: Math.max(.15, Math.min(.95,(10-fd)/10));
